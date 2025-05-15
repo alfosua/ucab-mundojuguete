@@ -1,6 +1,7 @@
 #include "fio_cli.h"
 #include "fiobj_mustache.h"
 #include "main.h"
+#include <string.h>
 
 const char *TEMPLATE_FILE = "src/mustaches/layout.html.mustache";
 
@@ -9,9 +10,11 @@ static void on_http_request(http_s *h) {
   fio_str_info_s filename_info = {.data = (char *)TEMPLATE_FILE, .len = strlen(TEMPLATE_FILE)};
   mustache_s *template = fiobj_mustache_load(filename_info);
 
+  const char *username = "Tilin";
+
   FIOBJ data = fiobj_hash_new();
   FIOBJ name_key = fiobj_str_new("name", 4);
-  FIOBJ name_value = fiobj_str_new("User", 4); // Changed the name slightly
+  FIOBJ name_value = fiobj_str_new(username, strlen(username)); // Changed the name slightly
   fiobj_hash_set(data, name_key, name_value);
 
   FIOBJ rendered_html = fiobj_mustache_build(template, data);

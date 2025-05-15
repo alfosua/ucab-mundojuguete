@@ -59,6 +59,9 @@ void initialize_cli(int argc, char const *argv[]) {
     if (tmp) {
       fio_cli_set("-public", tmp);
       fio_cli_set("-www", tmp);
+    } else {
+      fio_cli_set("-public", "public");
+      fio_cli_set("-www", "public");
     }
   }
 
