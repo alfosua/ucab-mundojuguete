@@ -11,7 +11,7 @@
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>Fecha y Hora</th>
+                        <th>Fecha</th>
                         <th>Tipo de Registro</th>
                         <th>Cantidad</th>
                     </tr>
@@ -21,7 +21,7 @@
                     <tr>
                         <td>{{id}}</td>
                         <td>{{datetime}}</td>
-                        <td>{{entry_type}}</td>
+                        <td data-entry-type="{{entry_type}}">{{entry_type_description}}</td>
                         <td>{{quantity}}</td>
                     </tr>
                     {{/inventory}}
@@ -38,31 +38,37 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form>
+                <form id="record-form">
                     <div class="mb-3">
                         <label for="id" class="form-label">ID</label>
-                        <input type="number" class="form-control" id="id">
+                        <input type="number" class="form-control" name="id" value="{{next_id}}" readonly>
                     </div>
                     <div class="mb-3">
-                        <label for="datetime" class="form-label">Fecha y Hora</label>
-                        <input type="date" class="form-control" id="datetime">
+                        <label for="datetime" class="form-label">Fecha</label>
+                        <input type="date" class="form-control" name="datetime" required>
                     </div>
                     <div class="mb-3">
                         <label for="entry_type" class="form-label">Tipo de Registro</label>
-                        <select class="form-select" id="entry_type">
-                            <option selected="selected">Entrada</option>
-                            <option>Salida</option>
+                        <select class="form-select" name="entry_type">
+                            <option value="0" selected="selected">Entrada</option>
+                            <option value="1">Salida</option>
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label for="quantity" class="form-label" value="0">Cantidad</label>
-                        <input type="number" class="form-control" id="quantity">
+                        <label for="quantity" class="form-label">Cantidad</label>
+                        <input type="number" class="form-control" name="quantity" value="1" min="1">
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary">Guardar</button>
+                <button type="button" class="btn btn-primary"
+                        hx-post="/inventory-record"
+                        hx-include="#record-form"
+                        hx-swap="none"
+                        hx-on::after-request="location.reload()">
+                    <i class="bi bi-plus-circle"></i> Guardar
+                </button>
             </div>
         </div>
     </div>

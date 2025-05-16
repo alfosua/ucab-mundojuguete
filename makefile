@@ -84,11 +84,11 @@ endif
 
 # c standard
 ifndef CSTD
-	CSTD:=c11
+	CSTD:=c17
 endif
 # c++ standard
 ifndef CPPSTD
-	CPPSTD:=gnu++11
+	CPPSTD:=gnu++17
 endif
 
 PKG_CONFIG ?= pkg-config

@@ -1,5 +1,6 @@
 # Build
 tmp/
+stack.sav
 
 # Prerequisites
 *.d
