@@ -67,7 +67,7 @@ void on_post_inventory_record(http_s *request) {
         FIOBJ params = request->params;
         if (fiobj_type(params) == FIOBJ_T_HASH) {
             record_to_add.id = atoi(fiobj_obj2cstr(fiobj_hash_get(params, HASH_KEY_ID)).data);
-            record_to_add.datetime = malloc(10);
+            record_to_add.datetime = malloc(100);
             strcpy(record_to_add.datetime, fiobj_obj2cstr(fiobj_hash_get(params, HASH_KEY_DATETIME)).data);
             record_to_add.entry_type = atoi(fiobj_obj2cstr(fiobj_hash_get(params, HASH_KEY_ENTRY_TYPE)).data);
             record_to_add.quantity = atoi(fiobj_obj2cstr(fiobj_hash_get(params, HASH_KEY_QUANTITY)).data);
