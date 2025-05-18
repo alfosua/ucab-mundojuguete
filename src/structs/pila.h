@@ -1,16 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-
-typedef struct toy {
-	int id;
-	char* name;
-	char* description;
-	int quantity;
-	float price;
-	int category_id;
-	struct record* top;
-	struct record* inicio;
-} toy;
+#include "toy.h"
 
 typedef struct record {
 	int id;
@@ -23,7 +13,6 @@ typedef struct record {
 
 void save_stack(toy *stack){
     FILE *f = fopen("stack.sav", "wb");
-    
     record* temp = stack->top;
 	while(temp!=NULL){
 		fwrite(&temp->id,sizeof(int),1,f);
