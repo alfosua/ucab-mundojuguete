@@ -1,4 +1,7 @@
-typedef struct toy {
+#ifndef H_MUNDOJUGUETE_STRUCTS_TOY_H
+#define H_MUNDOJUGUETE_STRUCTS_TOY_H
+
+typedef struct toy_t {
 	int id;
 	char* name;
 	char* description;
@@ -6,5 +9,6 @@ typedef struct toy {
 	float price;
 	int category_id;
 	struct record* top;
-} toy;
+} toy_t;
 
+#endif

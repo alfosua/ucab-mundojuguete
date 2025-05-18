@@ -39,6 +39,7 @@
             </div>
             <div class="modal-body">
                 <form id="record-form">
+                    <input type="hidden" class="hidden" name="toy_id" value="{{toy_id}}" />
                     <div class="mb-3">
                         <label for="id" class="form-label">ID</label>
                         <input type="number" class="form-control" name="id" value="{{next_id}}" readonly>
@@ -63,7 +64,7 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                 <button type="button" class="btn btn-primary"
-                        hx-post="/inventory-record"
+                        hx-post="/inventory"
                         hx-include="#record-form"
                         hx-swap="none"
                         hx-on::after-request="location.reload()">
