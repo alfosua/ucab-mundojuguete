@@ -6,6 +6,5 @@ typedef struct toy {
 	float price;
 	int category_id;
 	struct record* top;
-	struct record* inicio;
 } toy;
 

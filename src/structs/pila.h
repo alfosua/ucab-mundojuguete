@@ -8,7 +8,6 @@ typedef struct record {
 	char entry_type;
 	int quantity;
 	struct record *sig;
-	struct record *ant;
 } record;
 
 void save_stack(toy *stack){
@@ -32,17 +31,13 @@ void stack_record(toy **top, record data) {
 	record * nuevo = (record*)malloc(sizeof(record));
 	if(nuevo == NULL) {
 		printf("la pc de daniela se bugea siempre, comprenme ram vale 52.4$");
-		exit(1);
-	}if ((*top)->top!=NULL){
-		(*top)->inicio = nuevo;
-		(*top)->top->ant = nuevo;}
+		exit(1);}
 
 	nuevo->id = data.id;
 	nuevo->datetime = data.datetime;
 	nuevo->entry_type = data.entry_type;
 	nuevo->quantity = data.quantity;
 	nuevo->sig = (*top)->top;
-	nuevo->ant = NULL;
 
 	(*top)->top = nuevo;
 	(*top)->quantity = (*top)->quantity + nuevo->quantity;
@@ -54,6 +49,7 @@ void stack_record(toy **top, record data) {
 void load_stack(toy *stack){
 	FILE *f = fopen("stack.sav","rb");
 
+	toy* temp = malloc(sizeof(toy));
 	record* entry = (record*)malloc(sizeof(record));
 
 	for (;;){ //dejaem probar esto
@@ -63,9 +59,15 @@ void load_stack(toy *stack){
 		fread(entry->datetime,1,11,f);
 		fread(&entry->entry_type,1,1,f);
 		fread(&entry->quantity,sizeof(int),1,f);
-		stack_record(&stack,*entry);
+		stack_record(&temp,*entry);
 	}
 	fclose(f);
+	while(temp->top!=NULL){
+		stack_record(&stack,*(temp->top));
+		temp->top = temp->top->sig;
+	}
+	
+	free(temp);
 }
 
 void print_stack(toy *stack) {
