@@ -9,22 +9,22 @@ typedef struct order {
     struct order* sig;
 }order;
 
-typedef struct element {
+typedef struct queue {
     order* first;
     order* last;
-}element;
+}queue;
 
-void orden(element *cola, int id, int toy_id, int quantity, char* datetime) {
+void orden(queue *cola, order data) {
     order* new_order = (order*)malloc(sizeof(order));
     if (new_order == NULL) {
         printf("Error");
         exit(1);
     }
     
-    new_order->id = id;
-    new_order->quantity = quantity;
-    new_order->toy_id = toy_id;
-    new_order->datetime = datetime;
+    new_order->id = data.id;
+    new_order->quantity = data.quantity;
+    new_order->toy_id = data.toy_id;
+    new_order->datetime = data.datetime;
     new_order->sig = NULL;
     
     if (cola->first == NULL) {
@@ -35,7 +35,7 @@ void orden(element *cola, int id, int toy_id, int quantity, char* datetime) {
     cola->last = new_order;
 }
 
-void detele_orden(element *cola) {
+void detele_orden(queue *cola) {
     if (cola->first == NULL) {
         printf("No hay orden que eliminar");
         exit(1);
@@ -48,7 +48,7 @@ void detele_orden(element *cola) {
     free(temp);
 }
 
-void show_orden(element* cola) {
+void show_orden(queue* cola) {
     order* aux = cola->first;
     while(aux != NULL) {
         printf("ID: %d\tJuguete: %d\tCantidad: %d\tFecha/Hora: %s\n",
@@ -58,7 +58,7 @@ void show_orden(element* cola) {
 }
 
 int test() {
-    element cola;
+    queue cola;
     cola.first = NULL;
     cola.last = NULL;
     
@@ -84,7 +84,7 @@ int test() {
         printf("Ingrese la fecha: ");
         scanf("%s", datetime);
         
-        orden(&cola, id, toy_id, quantity, datetime);
+        orden(&cola, (order){ id, toy_id, quantity, datetime });
     }
     
     printf("\nPedidos ingresados:\n");

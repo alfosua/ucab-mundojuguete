@@ -1,0 +1,77 @@
+<div class="card">
+    <div class="card-header d-flex justify-content-between">
+        <h5 class="card-title">Pedidos Pendiente</h5>
+        <div>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#add-record-modal">Crear Pedido</button>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Fecha</th>
+                        <th>Juguete</th>
+                        <th>Cantidad</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#orders}}
+                    <tr>
+                        <td>{{id}}</td>
+                        <td>{{datetime}}</td>
+                        <td data-toy-id="{{toy_id}}">{{toy_name}}</td>
+                        <td>{{quantity}}</td>
+                    </tr>
+                    {{/orders}}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="add-record-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Crear Pedido</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="record-form">
+                    <div class="mb-3">
+                        <label for="id" class="form-label">ID</label>
+                        <input type="number" class="form-control" name="id" value="{{next_id}}" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="datetime" class="form-label">Fecha</label>
+                        <input type="date" class="form-control" name="datetime" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="toy_id" class="form-label">Juguete</label>
+                        <select class="form-select" name="toy_id">
+                            {{#toys}}
+                                <option value="{{toy_id}}">{{toy_name}}</option>
+                            {{/toys}}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="quantity" class="form-label">Cantidad</label>
+                        <input type="number" class="form-control" name="quantity" value="1" min="1">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary"
+                        hx-post="/orders"
+                        hx-include="#record-form"
+                        hx-swap="none"
+                        hx-on::after-request="location.reload()">
+                    <i class="bi bi-plus-circle"></i> Guardar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
