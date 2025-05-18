@@ -79,7 +79,6 @@ toy_t* create_toy(){
 	toy->price=0;
 	toy->category_id=0;
     toy->top=NULL;
-    toy->inicio=NULL;
     return toy;
 }
 
