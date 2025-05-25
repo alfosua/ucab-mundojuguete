@@ -5,16 +5,16 @@
 #include <stdlib.h>
 #include "toy.h"
 
-typedef struct record {
+typedef struct record_t {
 	int id;
 	char* datetime;
 	char entry_type;
 	int quantity;
-	struct record *sig;
-} record;
+	struct record_t *sig;
+} record_t;
 
 void save_stack(toy_t *stack);
-void stack_record(toy_t **top, record data);
+void stack_record(toy_t **top, record_t data);
 void load_stack(toy_t *stack);
 void print_stack(toy_t *stack);
 

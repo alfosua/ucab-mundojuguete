@@ -166,7 +166,7 @@ void render_page(http_s* request, const char * page_title, FIOBJ (*layout)(const
 
 void on_post_inventory(http_s *request) {
     toy_t *toy = NULL;
-    record record_to_add;
+    record_t record_to_add;
     if (http_parse_body(request) == 0) {
         FIOBJ params = request->params;
         if (fiobj_type(params) == FIOBJ_T_HASH) {
@@ -265,7 +265,7 @@ FIOBJ wc_inventory_grid(toy_t *target, int next_id) {
     fiobj_hash_set(data, HASH_KEY_TOY_ID, fiobj_num_new(target->id));
     
     FIOBJ inventory = fiobj_ary_new();
-    record *current = target->top;
+    record_t *current = target->top;
     while (current != NULL) {
         FIOBJ entry = fiobj_hash_new();
         fiobj_hash_set(entry, HASH_KEY_ID, fiobj_num_new(current->id));

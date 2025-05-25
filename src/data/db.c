@@ -66,9 +66,9 @@ void cleanup_toy_list() {
     while (current_toy != NULL) {
         node_t *temp_toy = current_toy;
         current_toy = current_toy->next;
-        record *current_record = current_toy->data->top;
+        record_t *current_record = current_toy->data->top;
         while (current_record != NULL) {
-            record *temp_record = current_record;
+            record_t *temp_record = current_record;
             current_record = current_record->sig;
             free(temp_record->datetime);
             free(temp_record);

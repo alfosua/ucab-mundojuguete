@@ -2,7 +2,7 @@
 
 void save_stack(toy_t *stack){
     FILE *f = fopen("stack.sav", "wb");
-    record* temp = stack->top;
+    record_t* temp = stack->top;
 	while(temp!=NULL){
 		fwrite(&temp->id,sizeof(int),1,f);
 		fwrite(temp->datetime,1,11,f);
@@ -17,8 +17,8 @@ void save_stack(toy_t *stack){
 	free(temp);
 }
 
-void stack_record(toy_t **top, record data) {
-	record * nuevo = (record*)malloc(sizeof(record));
+void stack_record(toy_t **top, record_t data) {
+	record_t * nuevo = (record_t*)malloc(sizeof(record_t));
 	if(nuevo == NULL) {
 		printf("la pc de daniela se bugea siempre, comprenme ram vale 52.4$");
 		exit(1);}
@@ -39,7 +39,7 @@ void load_stack(toy_t *stack){
 	FILE *f = fopen("stack.sav","rb");
 
 	toy_t* temp = malloc(sizeof(toy_t));
-	record* entry = (record*)malloc(sizeof(record));
+	record_t* entry = (record_t*)malloc(sizeof(record_t));
 
 	for (;;){
 		entry->datetime = (char*)malloc(11);
@@ -60,7 +60,7 @@ void load_stack(toy_t *stack){
 }
 
 void print_stack(toy_t *stack) {
-    record* temp = stack->top;
+    record_t* temp = stack->top;
     int i=0;
     while(stack->name[i]!='\0') {
 			printf("%c",stack->name[i]);
