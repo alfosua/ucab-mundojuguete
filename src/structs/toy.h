@@ -8,7 +8,7 @@ typedef struct toy_t {
 	int quantity;
 	float price;
 	int category_id;
-	struct record* top;
+	struct record_t* top;
 } toy_t;
 
 #endif
