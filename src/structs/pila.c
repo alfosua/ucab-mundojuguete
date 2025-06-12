@@ -30,7 +30,9 @@ void stack_record(toy_t **top, record_t data) {
 	nuevo->sig = (*top)->top;
 
 	(*top)->top = nuevo;
-	(*top)->quantity = (*top)->quantity + nuevo->quantity;
+	if(nuevo->entry_type == 0){
+		(*top)->quantity = (*top)->quantity + nuevo->quantity;
+	}else{(*top)->quantity = (*top)->quantity - nuevo->quantity;}
 	
 	save_stack(*top);
 }
@@ -86,4 +88,20 @@ void print_stack(toy_t *stack) {
 		temp = temp->sig;
 	}
 	free(temp);
+}
+
+int test(){
+	toy_t* juguete = malloc(sizeof(toy_t));
+	juguete->id = 56;
+	juguete->name = "NICOLAS";
+	juguete->description = "MARRON TUN TUN TUN SAhUR";
+	juguete->quantity = 5;
+	juguete->price = 345325.6;
+	juguete->category_id = 4;
+	juguete->top = NULL;
+	int i =0;
+	stack_record(&juguete, (record_t){i++, "2025-11-22",1, 4, NULL});
+	stack_record(&juguete, (record_t){i++, "2025-11-23",0, 5, NULL});
+	stack_record(&juguete, (record_t){i++, "2025-11-24",1, 4, NULL});
+	print_stack(juguete);
 }
