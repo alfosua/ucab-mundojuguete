@@ -162,7 +162,7 @@ void print_preorder(tree_node_t *parent, int tailing) {
     }
 }
 
-int test() {
+int test_tree() {
     tree_t *toy_tree = create_tree();
 
     toy_t *toy_1 = create_toy();
@@ -207,4 +207,5 @@ int test() {
 
     print_preorder(toy_tree->root, 0);
     printf("\n");
+    return 0;
 }

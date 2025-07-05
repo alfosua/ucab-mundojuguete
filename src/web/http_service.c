@@ -20,6 +20,7 @@ FIOBJ HTTP_MIMETYPE_TEXT_HTML;
 FIOBJ HTTP_METHOD_POST;
 FIOBJ HTTP_METHOD_GET;
 FIOBJ ROUTE_ROOT;
+FIOBJ ROUTE_CATEGORIES;
 FIOBJ ROUTE_TOYS;
 FIOBJ ROUTE_ORDERS;
 FIOBJ ROUTE_INVENTORY;
@@ -36,6 +37,7 @@ FIOBJ HASH_KEY_PAGE_TITLE;
 FIOBJ HASH_KEY_INVENTORY;
 FIOBJ HASH_KEY_ORDERS;
 FIOBJ HASH_KEY_TOYS;
+FIOBJ HASH_KEY_CATEGORIES;
 FIOBJ HASH_KEY_NAME;
 FIOBJ HASH_KEY_DESCRIPTION;
 FIOBJ HASH_KEY_PRICE;
@@ -48,23 +50,33 @@ void cleanup_http_values();
 FIOBJ layout_main(const char *page_title, FIOBJ body_content);
 FIOBJ page_home(http_s *request);
 FIOBJ page_404(http_s *request);
+FIOBJ page_categories(http_s *request);
 FIOBJ page_toys(http_s *request);
 FIOBJ page_inventory(http_s *request);
 FIOBJ page_orders(http_s *request);
-FIOBJ wc_toy_grid(list_t *target, int next_id);
+FIOBJ wc_category_grid(list_t *target);
+FIOBJ wc_toy_grid(tree_t *target, int next_id, list_t* category_list, int category_id);
 FIOBJ wc_inventory_grid(toy_t *target, int next_id);
 FIOBJ wc_orders_grid(queue_t *target, int next_id);
 
 // actions
 void on_post_inventory(http_s *request);
 void on_post_order(http_s *request);
+void on_post_toy(http_s *request);
+void on_post_category(http_s *request);
 
 /* TODO: edit this function to handle HTTP data and answer Websocket requests.*/
 static void on_http_request(http_s* h) {
     if (match_route(h, HTTP_METHOD_GET, ROUTE_ROOT)) {
         render_page(h, "Inicio", layout_main, page_home);
+    } else if (match_route(h, HTTP_METHOD_GET, ROUTE_CATEGORIES)) {
+        render_page(h, "Juguetes", layout_main, page_categories);
+    } else if (match_route(h, HTTP_METHOD_POST, ROUTE_CATEGORIES)) {
+        on_post_category(h);
     } else if (match_route(h, HTTP_METHOD_GET, ROUTE_TOYS)) {
         render_page(h, "Juguetes", layout_main, page_toys);
+    } else if (match_route(h, HTTP_METHOD_POST, ROUTE_TOYS)) {
+        on_post_toy(h);
     } else if (match_route(h, HTTP_METHOD_GET, ROUTE_INVENTORY)) {
         render_page(h, "Inventario", layout_main, page_inventory);
     } else if (match_route(h, HTTP_METHOD_POST, ROUTE_INVENTORY)) {
@@ -110,6 +122,7 @@ void initialize_http_values() {
     HTTP_METHOD_GET = fiobj_str_new("GET", 3);
 
     ROUTE_ROOT = fiobj_str_new("/", 1);
+    ROUTE_CATEGORIES = fiobj_str_new("/categories", 11);
     ROUTE_TOYS = fiobj_str_new("/toys", 5);
     ROUTE_ORDERS = fiobj_str_new("/orders", 7);
     ROUTE_INVENTORY = fiobj_str_new("/inventory", 10);
@@ -126,6 +139,7 @@ void initialize_http_values() {
     HASH_KEY_PAGE_TITLE = fiobj_str_new("page_title", 10);
     HASH_KEY_INVENTORY = fiobj_str_new("inventory", 9);
     HASH_KEY_ORDERS = fiobj_str_new("orders", 6);
+    HASH_KEY_CATEGORIES = fiobj_str_new("categories", 10);
     HASH_KEY_TOYS = fiobj_str_new("toys", 4);
     HASH_KEY_NAME = fiobj_str_new("name", 4);
     HASH_KEY_DESCRIPTION = fiobj_str_new("description", 11);
@@ -140,6 +154,7 @@ void cleanup_http_values() {
     fiobj_free(HTTP_METHOD_GET);
 
     fiobj_free(ROUTE_ROOT);
+    fiobj_free(ROUTE_CATEGORIES);
     fiobj_free(ROUTE_TOYS);
     fiobj_free(ROUTE_ORDERS);
     fiobj_free(ROUTE_INVENTORY);
@@ -156,6 +171,7 @@ void cleanup_http_values() {
     fiobj_free(HASH_KEY_PAGE_TITLE);
     fiobj_free(HASH_KEY_INVENTORY);
     fiobj_free(HASH_KEY_ORDERS);
+    fiobj_free(HASH_KEY_CATEGORIES);
     fiobj_free(HASH_KEY_TOYS);
     fiobj_free(HASH_KEY_NAME);
     fiobj_free(HASH_KEY_DESCRIPTION);
@@ -184,6 +200,32 @@ void render_page(http_s* request, const char * page_title, FIOBJ (*layout)(const
 
     fiobj_free(rendered_html);
     fiobj_free(page_html);
+}
+
+void on_post_toy(http_s *request) {
+    toy_t* toy_to_add = create_toy();
+    if (http_parse_body(request) == 0) {
+        FIOBJ params = request->params;
+        if (fiobj_type(params) == FIOBJ_T_HASH) {
+            toy_to_add->id = atoi(fiobj_obj2cstr(fiobj_hash_get(params, HASH_KEY_ID)).data);
+            strcpy(toy_to_add->name, fiobj_obj2cstr(fiobj_hash_get(params, HASH_KEY_NAME)).data);
+            strcpy(toy_to_add->description, fiobj_obj2cstr(fiobj_hash_get(params, HASH_KEY_DESCRIPTION)).data);
+            toy_to_add->price = atoi(fiobj_obj2cstr(fiobj_hash_get(params, HASH_KEY_PRICE)).data);
+            toy_to_add->category_id = atoi(fiobj_obj2cstr(fiobj_hash_get(params, HASH_KEY_CATEGORY_ID)).data);
+        }
+    }
+    add_toy(toy_to_add);
+}
+
+void on_post_category(http_s *request) {
+    if (http_parse_body(request) == 0) {
+        FIOBJ params = request->params;
+        if (fiobj_type(params) == FIOBJ_T_HASH) {
+            char* name = malloc(100);
+            strcpy(name, fiobj_obj2cstr(fiobj_hash_get(params, HASH_KEY_NAME)).data);
+            add_category(name);
+        }
+    }
 }
 
 void on_post_inventory(http_s *request) {
@@ -256,10 +298,22 @@ FIOBJ page_404(http_s *request) {
     return rendered_html;
 }
 
+FIOBJ page_categories(http_s *request) {
+    list_t *category_list = get_category_list();
+    return wc_category_grid(category_list);
+}
+
 FIOBJ page_toys(http_s *request) {
-    list_t *toy_list = get_toy_list();
+    int category_id = 0;
+    tree_t *toy_tree = get_toy_tree();
+    list_t *category_list = get_category_list();
+    http_parse_query(request);
+    FIOBJ query = request->params;
+    if (fiobj_type(query) == FIOBJ_T_HASH) {
+        category_id = atoi(fiobj_obj2cstr(fiobj_hash_get(query, HASH_KEY_CATEGORY_ID)).data);
+    }
     int next_id = get_toy_next_id();
-    return wc_toy_grid(toy_list, next_id);
+    return wc_toy_grid(toy_tree, next_id, category_list, category_id);
 }
 
 FIOBJ page_inventory(http_s *request) {
@@ -285,28 +339,96 @@ FIOBJ page_orders(http_s *request) {
     return wc_orders_grid(order_queue, next_id);
 }
 
-FIOBJ wc_toy_grid(list_t *target, int next_id) {
+void save_categories_into_ary(FIOBJ categories, list_t* category_list) {
+    int index = 1;
+    category_t *current_category = category_list->head;
+    while (current_category != NULL) {
+        FIOBJ entry = fiobj_hash_new();
+        fiobj_hash_set(entry, HASH_KEY_ID, fiobj_num_new(index));
+        fiobj_hash_set(entry, HASH_KEY_NAME, fiobj_str_new(current_category->name, strlen(current_category->name)));
+        fiobj_ary_push(categories, entry);
+        current_category = current_category->next;
+        index++;
+    }
+}
+
+FIOBJ wc_category_grid(list_t* category_list) {
+    mustache_s* template = load_mustache_from_file("src/mustaches/category-grid.html.mustache");
+
+    FIOBJ data = fiobj_hash_new();    
+    FIOBJ categories = fiobj_ary_new();
+    save_categories_into_ary(categories, category_list);
+    fiobj_hash_set(data, HASH_KEY_CATEGORIES, categories);
+
+    FIOBJ rendered_html = fiobj_mustache_build(template, data);
+
+    fiobj_mustache_free(template);
+    fiobj_free(data);
+
+    return rendered_html;
+}
+
+FIOBJ hash_set_from_toy(toy_t *toy, category_t *category) {
+    FIOBJ entry = fiobj_hash_new();
+    fiobj_hash_set(entry, HASH_KEY_ID, fiobj_num_new(toy->id));
+    fiobj_hash_set(entry, HASH_KEY_NAME, fiobj_str_new(toy->name, strlen(toy->name)));
+    fiobj_hash_set(entry, HASH_KEY_DESCRIPTION, fiobj_str_new(toy->description, strlen(toy->description)));
+    fiobj_hash_set(entry, HASH_KEY_PRICE, fiobj_num_new(toy->price));
+    fiobj_hash_set(entry, HASH_KEY_QUANTITY, fiobj_num_new(toy->quantity));
+    fiobj_hash_set(entry, HASH_KEY_CATEGORY_ID, fiobj_num_new(toy->category_id));
+    if (category != NULL) {
+        fiobj_hash_set(entry, HASH_KEY_CATEGORY_DESCRIPTION, fiobj_str_new(category->name, strlen(category->name)));
+    } else {
+        fiobj_hash_set(entry, HASH_KEY_CATEGORY_DESCRIPTION, fiobj_str_new("Ninguna", strlen("Ninguna")));
+    }
+    return entry;
+}
+
+void save_toys_from_category_into_ary(tree_t *toy_tree, list_t *category_list, FIOBJ toys, int category_id) {
+    category_t *category = get_category_by_index(category_list, category_id - 1);
+    if (category == NULL) {
+        return;
+    }
+    for (int i = 0; i < category->toy_count; i++) {
+        toy_t *toy = search_data(toy_tree->root, category->toys[i]);
+        FIOBJ entry = hash_set_from_toy(toy, category);
+        fiobj_ary_push(toys, entry);
+    }
+}
+
+void inorder_toys_into_ary(tree_node_t *parent, list_t *category_list, FIOBJ toys) {
+    if (parent == NULL) {
+        return;
+    }
+    inorder_toys_into_ary(parent->left, category_list, toys);
+    
+    toy_t *toy = parent->data;
+    category_t *category = toy->category_id > 0
+        ? get_category_by_index(category_list, toy->category_id - 1)
+        : NULL;
+    FIOBJ entry = hash_set_from_toy(toy, category);
+    fiobj_ary_push(toys, entry);
+
+    inorder_toys_into_ary(parent->right, category_list, toys);
+}
+
+FIOBJ wc_toy_grid(tree_t *target, int next_id, list_t* category_list, int category_id) {
     mustache_s* template = load_mustache_from_file("src/mustaches/toy-grid.html.mustache");
 
     FIOBJ data = fiobj_hash_new();
     fiobj_hash_set(data, HASH_KEY_NEXT_ID, fiobj_num_new(next_id));
     
     FIOBJ toys = fiobj_ary_new();
-    node_t *current = target->head;
-    while (current != NULL) {
-        toy_t *current_toy = current->data;
-        FIOBJ entry = fiobj_hash_new();
-        fiobj_hash_set(entry, HASH_KEY_ID, fiobj_num_new(current_toy->id));
-        fiobj_hash_set(entry, HASH_KEY_NAME, fiobj_str_new(current_toy->name, strlen(current_toy->name)));
-        fiobj_hash_set(entry, HASH_KEY_DESCRIPTION, fiobj_str_new(current_toy->description, strlen(current_toy->description)));
-        fiobj_hash_set(entry, HASH_KEY_PRICE, fiobj_num_new(current_toy->price));
-        fiobj_hash_set(entry, HASH_KEY_QUANTITY, fiobj_num_new(current_toy->quantity));
-        fiobj_hash_set(entry, HASH_KEY_CATEGORY_ID, fiobj_num_new(current_toy->category_id));
-        fiobj_hash_set(entry, HASH_KEY_CATEGORY_DESCRIPTION, fiobj_str_new("Ninguna", strlen("Ninguna")));
-        fiobj_ary_push(toys, entry);
-        current = current->next;
+    if (category_id > 0) {
+        save_toys_from_category_into_ary(target, category_list, toys, category_id);
+    } else {
+        inorder_toys_into_ary(target->root, category_list, toys);
     }
     fiobj_hash_set(data, HASH_KEY_TOYS, toys);
+
+    FIOBJ categories = fiobj_ary_new();
+    save_categories_into_ary(categories, category_list);
+    fiobj_hash_set(data, HASH_KEY_CATEGORIES, categories);
 
     FIOBJ rendered_html = fiobj_mustache_build(template, data);
 

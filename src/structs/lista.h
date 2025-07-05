@@ -5,23 +5,23 @@
 #include <stdlib.h>
 #include "toy.h"
 
-typedef struct node_t{
-    toy_t *data;
-    struct node_t *before;
-    struct node_t *next;
-} node_t;
+typedef struct category_t{
+    const char *name;
+    int toy_count;
+    int *toys;
+    struct category_t *before;
+    struct category_t *next;
+} category_t;
 
 typedef struct list_t{
-    node_t *head;
-    node_t *tail;
+    category_t *head;
+    category_t *tail;
 } list_t;
 
-toy_t* create_toy();
 list_t* create_list();
-node_t* create_node(toy_t* data);
-void insert_at_beggining(list_t *list, toy_t *data);
-void insert_at_final(list_t *list, toy_t *data);
-void print_list_start_end(list_t *list);
-void print_list_end_start(list_t *list);
+category_t* create_category(const char* name);
+category_t *get_category_by_index(list_t* list, int index);
+void add_toy_to_category(list_t* list, int category_index, int toy_id);
+void insert_at_end(list_t *list, const char *name);
 
 #endif

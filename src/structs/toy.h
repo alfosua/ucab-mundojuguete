@@ -11,4 +11,6 @@ typedef struct toy_t {
 	struct record_t* top;
 } toy_t;
 
+toy_t* create_toy();
+
 #endif

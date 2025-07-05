@@ -6,7 +6,9 @@
         "lista.h": "c",
         "cola.h": "c",
         "toy.h": "c",
-        "arbol.h": "c"
+        "arbol.h": "c",
+        "grafo.h": "c",
+        "typeinfo": "c"
     },
     "makefile.configureOnOpen": true
 }

@@ -1,0 +1,60 @@
+<div class="card">
+    <div class="card-header d-flex justify-content-between">
+        <h5 class="card-title">Categorías</h5>
+        <div>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#create-category-modal">Crear Categoría</button>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Nombre</th>
+                        <th>...</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#categories}}
+                    <tr>
+                        <td>{{id}}</td>
+                        <td>{{name}}</td>
+                        <td>
+                            <a class="btn btn-secondary" href="/toys?category_id={{id}}">Ver Juguetes</a>
+                        </td>
+                    </tr>
+                    {{/categories}}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="create-category-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Crear Categoría</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="category-form">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Nombre</label>
+                        <input type="text" class="form-control" name="name" placeholder="Mi Asombrosa Categoría" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary"
+                        hx-post="/categories"
+                        hx-include="#category-form"
+                        hx-swap="none"
+                        hx-on::after-request="location.reload()">
+                    <i class="bi bi-plus-circle"></i> Guardar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
