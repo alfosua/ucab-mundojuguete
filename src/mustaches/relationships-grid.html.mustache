@@ -1,8 +1,8 @@
 <div class="card">
     <div class="card-header d-flex justify-content-between">
-        <h5 class="card-title">Pedidos Pendiente</h5>
+        <h5 class="card-title">Relaciones</h5>
         <div>
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#add-record-modal">Crear Pedido</button>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#add-relationship-modal">Añadir Relación</button>
         </div>
     </div>
     <div class="card-body">
@@ -10,63 +10,57 @@
             <table class="table table-bordered">
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>Fecha</th>
+                        <th>#</th>
                         <th>Juguete</th>
-                        <th>Cantidad</th>
+                        <th>Relación</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {{#orders}}
+                    {{#relationships}}
                     <tr>
                         <td>{{id}}</td>
-                        <td>{{datetime}}</td>
+                        <td>{{description}}</td>
                         <td data-toy-id="{{toy_id}}">{{toy_name}}</td>
-                        <td>{{quantity}}</td>
                     </tr>
-                    {{/orders}}
+                    {{/relationships}}
                 </tbody>
             </table>
         </div>
     </div>
 </div>
-
-<div class="modal fade" id="add-record-modal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="add-relationship-modal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Crear Pedido</h5>
+                <h5 class="modal-title">Añadir Relación</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form id="record-form">
+                <form id="relationship-form">
+                    <input type="hidden" class="hidden" name="toy_id" value="{{toy_id}}" />
                     <div class="mb-3">
-                        <label for="id" class="form-label">ID</label>
-                        <input type="number" class="form-control" name="id" value="{{next_id}}" readonly>
+                        <label for="description" class="form-label">Relación</label>
+                        <select class="form-select" name="description">
+                            <option>se compra frecuentemente junto con</option>
+                            <option>es una variante de</option>
+                            <option>requiere ensamblaje con</option>
+                        </select>
                     </div>
                     <div class="mb-3">
-                        <label for="datetime" class="form-label">Fecha</label>
-                        <input type="date" class="form-control" name="datetime" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="toy_id" class="form-label">Juguete</label>
-                        <select class="form-select" name="toy_id">
+                        <label for="related_toy_id" class="form-label">Juguete</label>
+                        <select class="form-select" name="related_toy_id">
                             {{#toys}}
                                 <option value="{{id}}">{{name}}</option>
                             {{/toys}}
                         </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="quantity" class="form-label">Cantidad</label>
-                        <input type="number" class="form-control" name="quantity" value="1" min="1">
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                 <button type="button" class="btn btn-primary"
-                        hx-post="/orders"
-                        hx-include="#record-form"
+                        hx-post="/relationships"
+                        hx-include="#relationship-form"
                         hx-swap="none"
                         hx-on::after-request="location.reload()">
                     <i class="bi bi-plus-circle"></i> Guardar

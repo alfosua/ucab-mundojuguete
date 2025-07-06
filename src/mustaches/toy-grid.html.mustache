@@ -17,7 +17,7 @@
                         <th>Precio Unitario</th>
                         <th>Stock</th>
                         <th>Categoría</th>
-                        <th>...</th>
+                        <th class="text-center">...</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -30,7 +30,10 @@
                         <td>{{quantity}}</td>
                         <td data-category-id="{{category_id}}">{{category_description}}</td>
                         <td>
-                            <a class="btn btn-secondary" href="/inventory?toy_id={{id}}">Ver Inventario</a>
+                            <div class="d-flex gap-1">
+                                <a class="btn btn-secondary" href="/relationships?toy_id={{id}}">Ver Relaciones</a>
+                                <a class="btn btn-secondary" href="/inventory?toy_id={{id}}">Ver Inventario</a>
+                            </div>
                         </td>
                     </tr>
                     {{/toys}}

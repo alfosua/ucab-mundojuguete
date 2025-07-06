@@ -6,6 +6,7 @@
 #include "../structs/cola.h"
 #include "../structs/lista.h"
 #include "../structs/pila.h"
+#include "../structs/grafo.h"
 
 void init_db();
 void cleanup_db();
@@ -19,6 +20,7 @@ tree_t *get_toy_tree();
 toy_t *get_toy_by_id(int id);
 void add_toy(toy_t *toy);
 queue_t *get_order_queue();
+graph_t *get_graph();
 
 int get_toy_next_id();
 void inc_toy_next_id();

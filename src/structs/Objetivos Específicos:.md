@@ -34,6 +34,6 @@ específico buscando por su código de producto utilizando el árbol binario de 
 
 [x] 6. Historial de Movimientos: Permitir visualizar el historial reciente de entradas y salidas de un juguete específico, utilizando la pila asociada a ese juguete.
 
-[ ] 7. Búsqueda por Categoría (Utilizando el Árbol): Permitir listar los juguetes pertenecientes a una categoría específica.
+[x] 7. Búsqueda por Categoría (Utilizando el Árbol): Permitir listar los juguetes pertenecientes a una categoría específica.
 
 [ ] 8. Sugerencias/Relaciones: Se implementa el grafo para permitir mostrar juguetes relacionados a un juguete específico.

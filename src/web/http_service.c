@@ -23,6 +23,7 @@ FIOBJ ROUTE_ROOT;
 FIOBJ ROUTE_CATEGORIES;
 FIOBJ ROUTE_TOYS;
 FIOBJ ROUTE_ORDERS;
+FIOBJ ROUTE_RELATIONSHIPS;
 FIOBJ ROUTE_INVENTORY;
 FIOBJ HASH_KEY_BODY_CONTENT;
 FIOBJ HASH_KEY_ID;
@@ -32,8 +33,10 @@ FIOBJ HASH_KEY_ENTRY_TYPE;
 FIOBJ HASH_KEY_ENTRY_TYPE_DESCRIPTION;
 FIOBJ HASH_KEY_QUANTITY;
 FIOBJ HASH_KEY_TOY_ID;
+FIOBJ HASH_KEY_RELATED_TOY_ID;
 FIOBJ HASH_KEY_TOY_NAME;
 FIOBJ HASH_KEY_PAGE_TITLE;
+FIOBJ HASH_KEY_RELATIONSHIPS;
 FIOBJ HASH_KEY_INVENTORY;
 FIOBJ HASH_KEY_ORDERS;
 FIOBJ HASH_KEY_TOYS;
@@ -46,26 +49,29 @@ FIOBJ HASH_KEY_CATEGORY_DESCRIPTION;
 void initialize_http_values();
 void cleanup_http_values();
 
-// components
+// Componentes
 FIOBJ layout_main(const char *page_title, FIOBJ body_content);
 FIOBJ page_home(http_s *request);
 FIOBJ page_404(http_s *request);
 FIOBJ page_categories(http_s *request);
 FIOBJ page_toys(http_s *request);
 FIOBJ page_inventory(http_s *request);
+FIOBJ page_relationships(http_s *request);
 FIOBJ page_orders(http_s *request);
 FIOBJ wc_category_grid(list_t *target);
 FIOBJ wc_toy_grid(tree_t *target, int next_id, list_t* category_list, int category_id);
 FIOBJ wc_inventory_grid(toy_t *target, int next_id);
-FIOBJ wc_orders_grid(queue_t *target, int next_id);
+FIOBJ wc_relationships_grid(toy_t *target, graph_t *graph, tree_t *toy_tree);
+FIOBJ wc_orders_grid(queue_t *target, int next_id, tree_t *toy_tree);
 
-// actions
+// Acciones
 void on_post_inventory(http_s *request);
+void on_post_relationship(http_s *request);
 void on_post_order(http_s *request);
 void on_post_toy(http_s *request);
 void on_post_category(http_s *request);
 
-/* TODO: edit this function to handle HTTP data and answer Websocket requests.*/
+// Router
 static void on_http_request(http_s* h) {
     if (match_route(h, HTTP_METHOD_GET, ROUTE_ROOT)) {
         render_page(h, "Inicio", layout_main, page_home);
@@ -81,6 +87,10 @@ static void on_http_request(http_s* h) {
         render_page(h, "Inventario", layout_main, page_inventory);
     } else if (match_route(h, HTTP_METHOD_POST, ROUTE_INVENTORY)) {
         on_post_inventory(h);
+    } else if (match_route(h, HTTP_METHOD_GET, ROUTE_RELATIONSHIPS)) {
+        render_page(h, "Inventario", layout_main, page_relationships);
+    } else if (match_route(h, HTTP_METHOD_POST, ROUTE_RELATIONSHIPS)) {
+        on_post_relationship(h);
     } else if(match_route(h, HTTP_METHOD_GET, ROUTE_ORDERS)){
         render_page(h, "Pedidos", layout_main, page_orders);
     } else if(match_route(h, HTTP_METHOD_POST, ROUTE_ORDERS)){
@@ -125,6 +135,7 @@ void initialize_http_values() {
     ROUTE_CATEGORIES = fiobj_str_new("/categories", 11);
     ROUTE_TOYS = fiobj_str_new("/toys", 5);
     ROUTE_ORDERS = fiobj_str_new("/orders", 7);
+    ROUTE_RELATIONSHIPS = fiobj_str_new("/relationships", 14);
     ROUTE_INVENTORY = fiobj_str_new("/inventory", 10);
     
     HASH_KEY_BODY_CONTENT = fiobj_str_new("body_content", 12);
@@ -135,11 +146,13 @@ void initialize_http_values() {
     HASH_KEY_ENTRY_TYPE_DESCRIPTION = fiobj_str_new("entry_type_description", 22);
     HASH_KEY_QUANTITY = fiobj_str_new("quantity", 8);
     HASH_KEY_TOY_ID = fiobj_str_new("toy_id", 6);
+    HASH_KEY_RELATED_TOY_ID = fiobj_str_new("related_toy_id", 14);
     HASH_KEY_TOY_NAME = fiobj_str_new("toy_name", 8);
     HASH_KEY_PAGE_TITLE = fiobj_str_new("page_title", 10);
     HASH_KEY_INVENTORY = fiobj_str_new("inventory", 9);
     HASH_KEY_ORDERS = fiobj_str_new("orders", 6);
     HASH_KEY_CATEGORIES = fiobj_str_new("categories", 10);
+    HASH_KEY_RELATIONSHIPS = fiobj_str_new("relationships", 13);
     HASH_KEY_TOYS = fiobj_str_new("toys", 4);
     HASH_KEY_NAME = fiobj_str_new("name", 4);
     HASH_KEY_DESCRIPTION = fiobj_str_new("description", 11);
@@ -157,6 +170,7 @@ void cleanup_http_values() {
     fiobj_free(ROUTE_CATEGORIES);
     fiobj_free(ROUTE_TOYS);
     fiobj_free(ROUTE_ORDERS);
+    fiobj_free(ROUTE_RELATIONSHIPS);
     fiobj_free(ROUTE_INVENTORY);
     
     fiobj_free(HASH_KEY_BODY_CONTENT);
@@ -167,9 +181,11 @@ void cleanup_http_values() {
     fiobj_free(HASH_KEY_ENTRY_TYPE_DESCRIPTION);
     fiobj_free(HASH_KEY_QUANTITY);
     fiobj_free(HASH_KEY_TOY_ID);
+    fiobj_free(HASH_KEY_RELATED_TOY_ID);
     fiobj_free(HASH_KEY_TOY_NAME);
     fiobj_free(HASH_KEY_PAGE_TITLE);
     fiobj_free(HASH_KEY_INVENTORY);
+    fiobj_free(HASH_KEY_RELATIONSHIPS);
     fiobj_free(HASH_KEY_ORDERS);
     fiobj_free(HASH_KEY_CATEGORIES);
     fiobj_free(HASH_KEY_TOYS);
@@ -267,6 +283,29 @@ void on_post_order(http_s *request) {
     inc_order_next_id();
 }
 
+void on_post_relationship(http_s *request) {
+    if (http_parse_body(request) != 0) {
+        return;
+    }
+    FIOBJ params = request->params;
+    if (fiobj_type(params) != FIOBJ_T_HASH) {
+        return;
+    }
+    int toy_id = atoi(fiobj_obj2cstr(fiobj_hash_get(params, HASH_KEY_TOY_ID)).data);
+    char* type = malloc(100);
+    strcpy(type, fiobj_obj2cstr(fiobj_hash_get(params, HASH_KEY_DESCRIPTION)).data);
+    int related_toy_id = atoi(fiobj_obj2cstr(fiobj_hash_get(params, HASH_KEY_RELATED_TOY_ID)).data);
+    toy_t *toy = get_toy_by_id(toy_id);
+    toy_t *related_toy = get_toy_by_id(related_toy_id);
+    if (toy == NULL && related_toy == NULL) {
+        return;
+    }
+    graph_t *graph = get_graph();
+    int src = find_vertex_by_toy_id(graph, toy_id);
+    int dest = find_vertex_by_toy_id(graph, related_toy_id);
+    add_edge(graph, src, dest, type);
+}
+
 FIOBJ layout_main(const char *page_title, FIOBJ body_content) {
     mustache_s* template = load_mustache_from_file("src/mustaches/layout.html.mustache");
 
@@ -333,10 +372,29 @@ FIOBJ page_inventory(http_s *request) {
     }
 }
 
+FIOBJ page_relationships(http_s *request) {
+    toy_t *toy = NULL;
+    http_parse_query(request);
+    FIOBJ query = request->params;
+    if (fiobj_type(query) == FIOBJ_T_HASH) {
+        int toy_id = atoi(fiobj_obj2cstr(fiobj_hash_get(query, HASH_KEY_TOY_ID)).data);
+        toy = get_toy_by_id(toy_id);
+    }
+    if (toy != NULL) {
+        tree_t *toy_tree = get_toy_tree();
+        graph_t *graph = get_graph();
+        return wc_relationships_grid(toy, graph, toy_tree);
+    } else {
+        request->status = 404;
+        return page_404(request);
+    }
+}
+
 FIOBJ page_orders(http_s *request) {
     queue_t *order_queue = get_order_queue();
+    tree_t *toy_tree = get_toy_tree();
     int next_id = get_order_next_id();
-    return wc_orders_grid(order_queue, next_id);
+    return wc_orders_grid(order_queue, next_id, toy_tree);
 }
 
 void save_categories_into_ary(FIOBJ categories, list_t* category_list) {
@@ -396,20 +454,22 @@ void save_toys_from_category_into_ary(tree_t *toy_tree, list_t *category_list, F
     }
 }
 
-void inorder_toys_into_ary(tree_node_t *parent, list_t *category_list, FIOBJ toys) {
+void inorder_toys_into_ary(tree_node_t *parent, list_t *category_list, FIOBJ toys, int exclude_toy_id) {
     if (parent == NULL) {
         return;
     }
-    inorder_toys_into_ary(parent->left, category_list, toys);
+    inorder_toys_into_ary(parent->left, category_list, toys, exclude_toy_id);
     
     toy_t *toy = parent->data;
-    category_t *category = toy->category_id > 0
-        ? get_category_by_index(category_list, toy->category_id - 1)
-        : NULL;
-    FIOBJ entry = hash_set_from_toy(toy, category);
-    fiobj_ary_push(toys, entry);
+    if (toy->id != exclude_toy_id) {
+        category_t *category = toy->category_id > 0 && category_list != NULL
+            ? get_category_by_index(category_list, toy->category_id - 1)
+            : NULL;
+        FIOBJ entry = hash_set_from_toy(toy, category);
+        fiobj_ary_push(toys, entry);
+    }
 
-    inorder_toys_into_ary(parent->right, category_list, toys);
+    inorder_toys_into_ary(parent->right, category_list, toys, exclude_toy_id);
 }
 
 FIOBJ wc_toy_grid(tree_t *target, int next_id, list_t* category_list, int category_id) {
@@ -422,7 +482,7 @@ FIOBJ wc_toy_grid(tree_t *target, int next_id, list_t* category_list, int catego
     if (category_id > 0) {
         save_toys_from_category_into_ary(target, category_list, toys, category_id);
     } else {
-        inorder_toys_into_ary(target->root, category_list, toys);
+        inorder_toys_into_ary(target->root, category_list, toys, -1);
     }
     fiobj_hash_set(data, HASH_KEY_TOYS, toys);
 
@@ -444,6 +504,7 @@ FIOBJ wc_inventory_grid(toy_t *target, int next_id) {
     FIOBJ data = fiobj_hash_new();
     fiobj_hash_set(data, HASH_KEY_NEXT_ID, fiobj_num_new(next_id));
     fiobj_hash_set(data, HASH_KEY_TOY_ID, fiobj_num_new(target->id));
+    fiobj_hash_set(data, HASH_KEY_TOY_NAME, fiobj_str_new(target->name, strlen(target->name)));
     
     FIOBJ inventory = fiobj_ary_new();
     record_t *current = target->top;
@@ -471,7 +532,42 @@ FIOBJ wc_inventory_grid(toy_t *target, int next_id) {
     return rendered_html;
 }
 
-FIOBJ wc_orders_grid(queue_t *target, int next_id) {
+FIOBJ wc_relationships_grid(toy_t *toy, graph_t* graph, tree_t *toy_tree) {
+    mustache_s* template = load_mustache_from_file("src/mustaches/relationships-grid.html.mustache");
+
+    FIOBJ data = fiobj_hash_new();
+    fiobj_hash_set(data, HASH_KEY_TOY_ID, fiobj_num_new(toy->id));
+    fiobj_hash_set(data, HASH_KEY_TOY_NAME, fiobj_str_new(toy->name, strlen(toy->name)));
+    
+    FIOBJ relationships = fiobj_ary_new();
+    int vert_index = find_vertex_by_toy_id(graph, toy->id);
+    vertex_t vert = graph->vertices[vert_index];
+    adj_node_t *current = vert.first_adj;
+    while (current != NULL) {
+        FIOBJ entry = fiobj_hash_new();
+        int related_toy_id = graph->vertices[current->vertex_index].toy_id;
+        toy_t *related_toy = search_data(toy_tree->root, related_toy_id);
+        fiobj_hash_set(entry, HASH_KEY_TOY_ID, fiobj_num_new(related_toy->id));
+        fiobj_hash_set(entry, HASH_KEY_TOY_NAME, fiobj_str_new(related_toy->name, strlen(related_toy->name)));
+        fiobj_hash_set(entry, HASH_KEY_DESCRIPTION, fiobj_str_new(current->type, strlen(current->type)));
+        fiobj_ary_push(relationships, entry);
+        current = current->next;
+    }
+    fiobj_hash_set(data, HASH_KEY_RELATIONSHIPS, relationships);
+
+    FIOBJ toys = fiobj_ary_new();
+    inorder_toys_into_ary(toy_tree->root, NULL, toys, toy->id);
+    fiobj_hash_set(data, HASH_KEY_TOYS, toys);
+
+    FIOBJ rendered_html = fiobj_mustache_build(template, data);
+
+    fiobj_mustache_free(template);
+    fiobj_free(data);
+
+    return rendered_html;
+}
+
+FIOBJ wc_orders_grid(queue_t *target, int next_id, tree_t *toy_tree) {
     mustache_s* template = load_mustache_from_file("src/mustaches/order-grid.html.mustache");
 
     FIOBJ data = fiobj_hash_new();
@@ -485,44 +581,16 @@ FIOBJ wc_orders_grid(queue_t *target, int next_id) {
         fiobj_hash_set(entry, HASH_KEY_DATETIME, fiobj_str_new(current->datetime, strlen(current->datetime)));
         fiobj_hash_set(entry, HASH_KEY_TOY_ID, fiobj_num_new(current->toy_id));
         fiobj_hash_set(entry, HASH_KEY_QUANTITY, fiobj_num_new(current->quantity));
-        /*
-        toy *current_toy = toys->head;
-        while (current_toy != NULL) {
-            if (current_toy->toy_id == current->toy_id) {
-                fiobj_hash_set(entry, HASH_KEY_TOY_NAME, fiobj_str_new(current_toy->name, strlen(current_toy->name)));
-                break;
-            }
-        }
-        */
-        switch (current->toy_id)
-        {
-            case 0:
-                fiobj_hash_set(entry, HASH_KEY_TOY_NAME, fiobj_str_new("JUGUETE REAL",12));
-                break;
-            default:
-                fiobj_hash_set(entry, HASH_KEY_TOY_NAME, fiobj_str_new("JUGUETE FALSO",13));
-                break;
-        }
+        toy_t *toy = search_data(toy_tree, toy->id);
+        fiobj_hash_set(entry, HASH_KEY_TOY_NAME, fiobj_str_new(toy->name, strlen(toy->name)));
         fiobj_ary_push(orders, entry);
         current = current->sig;
     }
     fiobj_hash_set(data, HASH_KEY_ORDERS, orders);
     
     FIOBJ toys = fiobj_ary_new();
-        
-    fiobj_hash_set(data, HASH_KEY_TOYS,toys);
-    
-    FIOBJ real_toy = fiobj_hash_new();
-    fiobj_hash_set(real_toy, HASH_KEY_TOY_ID, fiobj_num_new(0));
-    fiobj_hash_set(real_toy, HASH_KEY_TOY_NAME, fiobj_str_new("JUGUETE REAL",12));
-
-    fiobj_ary_push(toys,real_toy);
-    
-    FIOBJ fake_toy = fiobj_hash_new();
-    fiobj_hash_set(fake_toy, HASH_KEY_TOY_ID, fiobj_num_new(1));
-    fiobj_hash_set(fake_toy, HASH_KEY_TOY_NAME, fiobj_str_new("JUGUETE FALSO",13));
-
-    fiobj_ary_push(toys, fake_toy);
+    inorder_toys_into_ary(toy_tree->root, NULL, toys, -1);
+    fiobj_hash_set(data, HASH_KEY_TOYS, toys);
 
     FIOBJ rendered_html = fiobj_mustache_build(template, data);
 

@@ -49,38 +49,3 @@ void show_orden(queue_t* cola) {
         aux = aux->sig;
     }
 }
-
-int test_cola() {
-    queue_t cola;
-    cola.first = NULL;
-    cola.last = NULL;
-    
-    int n;
-    printf("¿Cuántos pedidos desea ingresar? ");
-    scanf("%d", &n);
-    
-    int id, quantity, toy_id;
-    char datetime[100];    // Ni puta idea el formato de la fecha y una hipotetica hora
-    
-    for (int i = 0; i < n; i++) {
-        printf("\nPedido %d\n", i + 1);
-        
-        printf("Ingrese el id: ");
-        scanf("%d", &id);
-        
-        printf("Ingrese el id del juguete: ");
-        scanf("%d", toy_id);
-        
-        printf("Ingrese la cantidad: ");
-        scanf("%d", &quantity);
-        
-        printf("Ingrese la fecha: ");
-        scanf("%s", datetime);
-        
-        orden(&cola, (order_t){ id, toy_id, quantity, datetime });
-    }
-    
-    printf("\nPedidos ingresados:\n");
-    show_orden(&cola);
-return 0;
-}

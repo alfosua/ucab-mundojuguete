@@ -61,7 +61,7 @@ int find_vertex_by_toy_id(graph_t* graph, int toy_id){
     if (graph == NULL){
         return -1;
     }
-
+    
     for (int i = 0; i < graph->vertices_count; i++){
         if (graph->vertices[i].toy_id == toy_id){
             return i;

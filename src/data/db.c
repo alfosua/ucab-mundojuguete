@@ -6,6 +6,7 @@
 list_t *category_list;
 tree_t *toy_tree;
 queue_t *order_queue;
+graph_t *graph;
 
 // id counters
 int toy_next_id = 1;
@@ -16,6 +17,7 @@ void init_db() {
     category_list = create_list();
     toy_tree = create_tree();
     order_queue = create_queue();
+    graph = create_graph();
     
     add_category("Gaming");
     add_category("Marvel");
@@ -98,7 +100,7 @@ void cleanup_order_queue() {
 }
 
 toy_t *get_toy_by_id(int id) {
-    search_data(toy_tree->root, id);
+    return search_data(toy_tree->root, id);
 }
 
 void add_category(const char* name) {
@@ -107,7 +109,7 @@ void add_category(const char* name) {
 
 void add_toy(toy_t *toy) {
     add_node(toy_tree, toy);
-    //TODO: add in graph
+    add_vertex(graph, toy->id);
     if (toy->category_id >= 0) {
         add_toy_to_category(category_list, toy->category_id - 1, toy->id);
     }
@@ -120,6 +122,10 @@ list_t *get_category_list() {
 
 tree_t *get_toy_tree() {
     return toy_tree;
+}
+
+graph_t *get_graph() {
+    return graph;
 }
 
 queue_t *get_order_queue() {
@@ -145,7 +151,7 @@ void dequeue_order(queue_t* cola) {
     record.entry_type = 1;
     record.quantity = pedido->quantity;
     
-    stack_record(toy, record);
+    stack_record(&toy, record);
     inc_inventory_record_next_id();
 
     printf("pedido listo");

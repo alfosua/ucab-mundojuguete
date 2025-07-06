@@ -31,9 +31,9 @@ void add_node(tree_t *tree, toy_t* data) {
 }
 
 int add_child(tree_node_t *parent, toy_t* data) {
-    if (data < parent->data) {
+    if (data->id < parent->data->id) {
         return insert_child(&parent->left, data);
-    } else if (data > parent->data) {
+    } else if (data->id > parent->data->id) {
         return insert_child(&parent->right, data);
     }
     return 0;
@@ -137,29 +137,21 @@ toy_t* search_data(tree_node_t *root, int key) {
 }
 
 void print_inorder(tree_node_t *parent, int tailing) {
-    if (parent->left != NULL) {
-        print_inorder(parent->left, tailing);
+    if (parent == NULL) {
+        return;
     }
-    if (parent->left != NULL || tailing) {
-        printf("\n");
-    }
-    printf("{ id: %d, name: \"%s\" }", parent->data->id, parent->data->name);
-    if (parent->right != NULL) {
-        print_inorder(parent->right, 1);
-    }
+    print_inorder(parent->left, tailing);
+    printf("{ id: %d, name: \"%s\" }\n", parent->data->id, parent->data->name);
+    print_inorder(parent->right, 1);
 }
 
 void print_preorder(tree_node_t *parent, int tailing) {
-    if (tailing) {
-        printf("\n");
+    if (parent == NULL) {
+        return;
     }
-    printf("{ id: %d, name: \"%s\" }", parent->data->id, parent->data->name);
-    if (parent->left != NULL) {
-        print_preorder(parent->left, 1);
-    }
-    if (parent->right != NULL) {
-        print_preorder(parent->right, 1);
-    }
+    printf("{ id: %d, name: \"%s\" }\n", parent->data->id, parent->data->name);
+    print_inorder(parent->left, tailing);
+    print_inorder(parent->right, 1);
 }
 
 int test_tree() {
@@ -205,7 +197,7 @@ int test_tree() {
     toy_5->category_id = 1;
     add_node(toy_tree, toy_5);
 
-    print_preorder(toy_tree->root, 0);
+    print_inorder(toy_tree->root, 0);
     printf("\n");
     return 0;
 }
