@@ -23,6 +23,7 @@ FIOBJ ROUTE_ROOT;
 FIOBJ ROUTE_CATEGORIES;
 FIOBJ ROUTE_TOYS;
 FIOBJ ROUTE_ORDERS;
+FIOBJ ROUTE_ORDERS_PROCESS;
 FIOBJ ROUTE_RELATIONSHIPS;
 FIOBJ ROUTE_INVENTORY;
 FIOBJ HASH_KEY_BODY_CONTENT;
@@ -68,6 +69,7 @@ FIOBJ wc_orders_grid(queue_t *target, int next_id, tree_t *toy_tree);
 void on_post_inventory(http_s *request);
 void on_post_relationship(http_s *request);
 void on_post_order(http_s *request);
+void on_post_order_process(http_s *request);
 void on_post_toy(http_s *request);
 void on_post_category(http_s *request);
 
@@ -95,6 +97,8 @@ static void on_http_request(http_s* h) {
         render_page(h, "Pedidos", layout_main, page_orders);
     } else if(match_route(h, HTTP_METHOD_POST, ROUTE_ORDERS)){
         on_post_order(h);
+    } else if(match_route(h, HTTP_METHOD_POST, ROUTE_ORDERS_PROCESS)){
+        on_post_order_process(h);
     } else {
         h->status = 404;
         render_page(h, "404", layout_main, page_404);
@@ -135,6 +139,7 @@ void initialize_http_values() {
     ROUTE_CATEGORIES = fiobj_str_new("/categories", 11);
     ROUTE_TOYS = fiobj_str_new("/toys", 5);
     ROUTE_ORDERS = fiobj_str_new("/orders", 7);
+    ROUTE_ORDERS_PROCESS = fiobj_str_new("/orders/process", 15);
     ROUTE_RELATIONSHIPS = fiobj_str_new("/relationships", 14);
     ROUTE_INVENTORY = fiobj_str_new("/inventory", 10);
     
@@ -170,6 +175,7 @@ void cleanup_http_values() {
     fiobj_free(ROUTE_CATEGORIES);
     fiobj_free(ROUTE_TOYS);
     fiobj_free(ROUTE_ORDERS);
+    fiobj_free(ROUTE_ORDERS_PROCESS);
     fiobj_free(ROUTE_RELATIONSHIPS);
     fiobj_free(ROUTE_INVENTORY);
     
@@ -281,6 +287,11 @@ void on_post_order(http_s *request) {
     }
     orden(order_queue, new_order);
     inc_order_next_id();
+}
+
+void on_post_order_process(http_s *request) {
+    queue_t *queue = get_order_queue();
+    dequeue_order(queue);
 }
 
 void on_post_relationship(http_s *request) {
@@ -581,7 +592,7 @@ FIOBJ wc_orders_grid(queue_t *target, int next_id, tree_t *toy_tree) {
         fiobj_hash_set(entry, HASH_KEY_DATETIME, fiobj_str_new(current->datetime, strlen(current->datetime)));
         fiobj_hash_set(entry, HASH_KEY_TOY_ID, fiobj_num_new(current->toy_id));
         fiobj_hash_set(entry, HASH_KEY_QUANTITY, fiobj_num_new(current->quantity));
-        toy_t *toy = search_data(toy_tree, toy->id);
+        toy_t *toy = search_data(toy_tree->root, current->toy_id);
         fiobj_hash_set(entry, HASH_KEY_TOY_NAME, fiobj_str_new(toy->name, strlen(toy->name)));
         fiobj_ary_push(orders, entry);
         current = current->sig;

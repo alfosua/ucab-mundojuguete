@@ -134,14 +134,12 @@ queue_t *get_order_queue() {
 
 void dequeue_order(queue_t* cola) {
     if (cola == NULL || cola->first == NULL){
-        printf("No hay pedidos");
         return;
     }
     
     order_t* pedido = cola->first;
     toy_t* toy = get_toy_by_id(pedido->toy_id);
     if (toy == NULL){
-        printf("Juguete no encontrado");
         return;
     }
     
@@ -154,8 +152,7 @@ void dequeue_order(queue_t* cola) {
     stack_record(&toy, record);
     inc_inventory_record_next_id();
 
-    printf("pedido listo");
-    free(pedido);
+    detele_orden(cola);
 }
 
 int get_toy_next_id() { return toy_next_id; }

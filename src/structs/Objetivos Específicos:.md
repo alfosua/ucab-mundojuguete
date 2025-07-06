@@ -4,12 +4,11 @@ Objetivos Específicos:
 las últimas transacciones de entrada y salida de cada juguete, permitiendo rastrear los
 movimientos recientes del inventario.
 
-[ ] 2. Administrar los pedidos pendientes: Emplear una cola para gestionar los pedidos de juguetes que aún no han sido procesados o enviados.
-    - Falta el proceso de Procesamiento
+[x] 2. Administrar los pedidos pendientes: Emplear una cola para gestionar los pedidos de juguetes que aún no han sido procesados o enviados.
 
 [x] 3. Organizar el inventario por código de producto: Implementar un árbol binario de búsqueda para indexar y buscar eficientemente los juguetes por su código único de producto. Esto facilitará la búsqueda, actualización y eliminación de artículos.
 
-[ ] 4. Representar las relaciones entre juguetes: Utilizar un grafo para modelar posibles relaciones entre juguetes, como "se compra frecuentemente junto con", "es una variante de", o "requiere ensamblaje con". Esto podría utilizarse para sugerencias de compra o para gestionar componentes.
+[x] 4. Representar las relaciones entre juguetes: Utilizar un grafo para modelar posibles relaciones entre juguetes, como "se compra frecuentemente junto con", "es una variante de", o "requiere ensamblaje con". Esto podría utilizarse para sugerencias de compra o para gestionar componentes.
 
 Funcionalidades Requeridas:
 
@@ -27,13 +26,13 @@ del juguete.
 [x] 4. Consulta de Inventario: Permitir consultar la información detallada de un juguete
 específico buscando por su código de producto utilizando el árbol binario de búsqueda.
 
-[ ] 5. Gestión de Pedidos:
+[x] 5. Gestión de Pedidos:
     [x] Creación de Pedidos: Permitir crear nuevos pedidos de juguetes. Estos pedidos se añadirán a la cola de pedidos pendientes.
-    [ ] Procesamiento de Pedidos: Permitir marcar pedidos como procesados, removiéndolos de la cola.
+    [x] Procesamiento de Pedidos: Permitir marcar pedidos como procesados, removiéndolos de la cola.
     [x] Visualización de Pedidos Pendientes: Mostrar la lista de pedidos pendientes en el orden en que fueron recibidos.
 
 [x] 6. Historial de Movimientos: Permitir visualizar el historial reciente de entradas y salidas de un juguete específico, utilizando la pila asociada a ese juguete.
 
 [x] 7. Búsqueda por Categoría (Utilizando el Árbol): Permitir listar los juguetes pertenecientes a una categoría específica.
 
-[ ] 8. Sugerencias/Relaciones: Se implementa el grafo para permitir mostrar juguetes relacionados a un juguete específico.
+[x] 8. Sugerencias/Relaciones: Se implementa el grafo para permitir mostrar juguetes relacionados a un juguete específico.
