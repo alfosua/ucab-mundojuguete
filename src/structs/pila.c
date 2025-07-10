@@ -17,7 +17,7 @@ void save_stack(toy_t *stack){
 	free(temp);
 }
 
-void stack_record(toy_t **top, record_t data) {
+void stack_record(toy_t **stack, record_t data) {
 	record_t * nuevo = (record_t*)malloc(sizeof(record_t));
 	if(nuevo == NULL) {
 		printf("la pc de daniela se bugea siempre, comprenme ram vale 52.4$");
@@ -27,14 +27,14 @@ void stack_record(toy_t **top, record_t data) {
 	nuevo->datetime = data.datetime;
 	nuevo->entry_type = data.entry_type;
 	nuevo->quantity = data.quantity;
-	nuevo->sig = (*top)->top;
+	nuevo->sig = (*stack)->top;
 
-	(*top)->top = nuevo;
+	(*stack)->top = nuevo;
 	if(nuevo->entry_type == 0){
-		(*top)->quantity = (*top)->quantity + nuevo->quantity;
-	}else{(*top)->quantity = (*top)->quantity - nuevo->quantity;}
+		(*stack)->quantity = (*stack)->quantity + nuevo->quantity;
+	}else{(*stack)->quantity = (*stack)->quantity - nuevo->quantity;}
 	
-	save_stack(*top);
+	save_stack(*stack);
 }
 
 void load_stack(toy_t *stack){
